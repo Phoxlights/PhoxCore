@@ -1,6 +1,6 @@
-#include "Arduino.h"
-#include "Ticker.h"
-#include "Adafruit_NeoPixel.h"
+#include <Arduino.h>
+#include <Ticker.h>
+#include <Adafruit_NeoPixel.h>
 #include "lightstrip.h"
 
 typedef struct LightStripState {

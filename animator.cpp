@@ -1,6 +1,6 @@
-#include "Ticker.h"
-#include "animate.h"
-#include "bitmap.h"
+#include <Ticker.h>
+#include <animate.h>
+#include <bitmap.h>
 #include "animator.h"
 
 // TODO - define interface (or at least some utils)

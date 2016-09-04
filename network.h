@@ -1,7 +1,7 @@
 #ifndef NETWORK_H
 #define NETWORK_H
 
-#include "IPAddress.h"
+#include <IPAddress.h>
 
 #define MAX_CONNECTION_ATTEMPTS 50
 #define SSID_MAX 16

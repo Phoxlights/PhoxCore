@@ -1,7 +1,7 @@
 #include <string.h>
-#include "ESP8266WiFi.h"
-#include "ESP8266mDNS.h"
-#include "Ticker.h"
+#include <ESP8266WiFi.h>
+#include <ESP8266mDNS.h>
+#include <Ticker.h>
 #include "network.h"
 
 enum networkStatus {
@@ -30,15 +30,15 @@ static struct networkState {
 // https://github.com/esp8266/Arduino/issues/644
 static void wifiOff(){
     WiFi.mode(WIFI_OFF);
-    WiFi.forceSleepBegin();
+    //WiFi.forceSleepBegin();
     delay(1);
 }
 // workaround to force wifi back on per
 // https://github.com/esp8266/Arduino/issues/644
 static void wifiOn(){
-    WiFi.forceSleepWake();
+    //WiFi.forceSleepWake();
     WiFi.mode(WIFI_STA);  
-    WiFi.forceForceWake();
+    //WiFi.forceForceWake();
 }
 
 static void resetState(){

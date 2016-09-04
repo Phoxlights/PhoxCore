@@ -1,8 +1,8 @@
 #ifndef ANIMATOR_H
 #define ANIMATOR_H
 
-#include "transform.h"
-#include "bitmap.h"
+#include <transform.h>
+#include <bitmap.h>
 
 typedef struct AnimatorState* Animator;
 typedef struct AnimatorLayerState* AnimatorLayer;

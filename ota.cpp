@@ -1,5 +1,5 @@
-#include "ArduinoOTA.h"
-#include "Ticker.h"
+#include <ArduinoOTA.h>
+#include <Ticker.h>
 #include "loop.h"
 #include "network.h"
 #include "ota.h"
@@ -75,10 +75,13 @@ int otaStart(){
     ArduinoOTA.onProgress(&onProgress);
     ArduinoOTA.onError(&onError);
 
+    /*
     if(!ArduinoOTA.begin(false)){
         Serial.println("Failed to start OTA");
         return 0;
     }
+    */
+    ArduinoOTA.begin();
 
     startCheckingUpdate();
     return 1;

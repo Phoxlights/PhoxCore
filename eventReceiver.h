@@ -1,7 +1,7 @@
 #ifndef EVENTRECEIVER_H
 #define EVENTRECEIVER_H
 
-#include "ESP8266WiFi.h"
+#include <ESP8266WiFi.h>
 #include "event.h"
 #include "eventRegistry.h"
 

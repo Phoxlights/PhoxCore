@@ -1,7 +1,7 @@
 #ifndef OTA_H
 #define OTA_H
 
-#include "ArduinoOTA.h"
+#include <ArduinoOTA.h>
 
 // callbacks
 typedef void(callback)();

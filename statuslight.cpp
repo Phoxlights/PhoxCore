@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <Adafruit_NeoPixel.h>
-#include "Ticker.h"
+#include <Ticker.h>
 #include "statuslight.h"
 
 typedef struct StatusLightState {
