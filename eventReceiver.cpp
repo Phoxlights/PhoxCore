@@ -14,7 +14,7 @@ struct eventMapNode {
 };
 
 typedef struct EventReceiverState {
-    int version;
+    int versionMajor;
     int port;
     WiFiServer * server;
     eventMapNode ** eventMap;
@@ -117,8 +117,8 @@ static int eventTrigger(Event * e){
     EventHeader * header = e->header;
     Serial.printf("Received event: %i\n", header->opCode);
 
-    if(header->version != state->version){
-        Serial.printf("Incompatible API ver: %i.%i\n", header->version, header->version);
+    if(header->versionMajor != state->versionMajor){
+        Serial.printf("Incompatible API ver: %i.%i\n", header->versionMajor, header->versionMajor);
         return 0;
     }
 
@@ -161,7 +161,7 @@ static void eventReceiverTick(void * s){
 }
 
 
-int eventReceiverStart(int version, int port){
+int eventListen(int versionMajor, int port){
     if(state != NULL){
         Serial.println("Cannot start event receive; already started");
         // TODO - is returning 1 here ok?
@@ -173,8 +173,7 @@ int eventReceiverStart(int version, int port){
     }
 
     state = (EventReceiverState*)malloc(sizeof(EventReceiverState));
-    // TODO - just one version number int is probably fine
-    state->version = version;
+    state->versionMajor = versionMajor;
     state->port = port;
 
     // setup event map for registering events
@@ -189,7 +188,7 @@ int eventReceiverStart(int version, int port){
     return 1;
 }
 
-int eventReceiverRegister(event_opCode opCode, eventCallback * handler){
+int eventRegister(event_opCode opCode, eventCallback * handler){
     if(state == NULL){
         Serial.println("cannot register event; event receiver must be started first");
         return 0;

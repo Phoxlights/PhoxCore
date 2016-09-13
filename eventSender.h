@@ -1,9 +1,11 @@
 #ifndef EVENTSENDER_H
 #define EVENTSENDER_H
 
-typedef struct EventSenderState* EventSender;
+#include <ESP8266WiFi.h>
+#include "event.h"
+#include "eventRegistry.h"
 
-EventSender eventSenderCreate(IPAddress ip, int port, int version);
-int eventSend(EventSender sender, int opCode);
+// TODO - minor version
+int eventSend(IPAddress ip, int port, int version, event_opCode opCode, int length, void * body);
 
 #endif

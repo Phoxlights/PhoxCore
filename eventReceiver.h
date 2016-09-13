@@ -5,8 +5,9 @@
 #include "event.h"
 #include "eventRegistry.h"
 
-typedef void(eventCallback)(Event * e);
-int eventReceiverStart(int version, int port);
-int eventReceiverRegister(event_opCode opCode, eventCallback * handler);
+// TODO - minor version
+// NOTE - there is a single global event listener instance
+int eventListen(int version, int port);
+int eventRegister(event_opCode opCode, eventCallback * handler);
 
 #endif
