@@ -7,8 +7,45 @@
 // shared client for sending events
 WiFiClient * client = NULL;
 
+static uint16_t id = 0;
+
+static int getId(){
+    return id++;
+}
+
+// The C is for Client!
 // TODO - minor version
-int eventSend(IPAddress ip, int port, int version, event_opCode opCode, int length, void * body){
+// TODO - wrap/abstract WiFiClient
+int eventSendC(WiFiClient * client, int version, int opCode, int length, void * body, int responseId){
+    // TODO - verify client is connected
+
+    EventHeader e = {
+        .versionMajor = version,
+        .versionMinor = 0,
+        .responseId = responseId,
+        .requestId = getId(),
+        .opCode = opCode,
+        .length = length,
+    };
+
+    // write header
+    const uint8_t* headerPtr = (byte*)(void*)&e;
+    // TODO - error handling around client write
+    client->write(headerPtr, sizeof(EventHeader));
+
+    // write body
+    const uint8_t* bodyPtr = (byte*)body;
+    // TODO - error handling around client write
+    client->write(bodyPtr, length);
+
+    // TODO - leave client open?
+    client->stop();
+
+    return 1;
+}
+
+// TODO - minor version
+int eventSend(IPAddress ip, int port, int version, int opCode, int length, void * body, int responseId){
     if(!networkIsConnected()){
         Serial.println("cannot send event; no network");
         return 0;
@@ -23,20 +60,5 @@ int eventSend(IPAddress ip, int port, int version, event_opCode opCode, int leng
         return 0;
     }
 
-    // TODO - send event body
-    EventHeader e = {
-        .versionMajor = version,
-        .versionMinor = 0,
-        .responseId = 0,
-        .requestId = 0,
-        .opCode = opCode,
-        .length = 0
-    };
-    const uint8_t* ptr = (byte*)(void*)&e;
-    // TODO - error handling around client write
-    client->write(ptr, sizeof(EventHeader));
-    // TODO - leave client open?
-    client->stop();
-
-    return 1;
+    return eventSendC(client, version, opCode, length, body, responseId);
 }

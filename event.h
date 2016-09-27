@@ -1,6 +1,8 @@
 #ifndef EVENT_H
 #define EVENT_H
 
+#include <WiFiClient.h>
+
 typedef struct EventHeader{
     uint16_t versionMajor;
     uint16_t versionMinor;
@@ -15,6 +17,14 @@ typedef struct Event {
     uint8_t * body;
 } Event;
 
-typedef void(eventCallback)(Event * e);
+typedef struct Request {
+    IPAddress remoteIP;
+    uint16_t  remotePort;
+    // TODO - use an interface around this class
+    WiFiClient * client;
+} Request;
+
+
+typedef void(eventCallback)(Event * e, Request * r);
 
 #endif

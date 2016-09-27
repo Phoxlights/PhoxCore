@@ -9,6 +9,8 @@ typedef enum {
     SIGNAL_L_ON = 4,
     SIGNAL_L_OFF = 5,
     PING = 1000,
+    PONG = 1001,
+    WHO = 1002,
     SET_TAILLIGHT_OFFSET = 2000,
     SET_BUTTON_PIN = 2100,
     SET_TAILLIGHT_PIN = 2200,

@@ -113,7 +113,7 @@ static Event * eventReceive(WiFiClient client){
     return e;
 }
 
-static int eventTrigger(Event * e){
+static int eventTrigger(Event * e, Request * r){
     EventHeader * header = e->header;
     Serial.printf("Received event: %i\n", header->opCode);
 
@@ -125,7 +125,7 @@ static int eventTrigger(Event * e){
     for(byte i = 0; i < state->eventMapLength; i++){
         if(state->eventMap[i]->opCode == header->opCode){
             Serial.printf("fount event %i\n", header->opCode);
-            state->eventMap[i]->handler(e);
+            state->eventMap[i]->handler(e,r);
             return 1;
         } 
     }
@@ -153,13 +153,20 @@ static void eventReceiverTick(void * s){
         return;
     }
 
-    if(!eventTrigger(e)){
+    Request * r = (Request*)calloc(1, sizeof(Request));
+    r->remoteIP = client.remoteIP();
+    r->remotePort = client.remotePort();
+    r->client = &client;
+
+    if(!eventTrigger(e, r)){
         Serial.println("Couldn't trigger event");
         // NOTE - dont early return, need to call free
     }
     eventFree(e);
-}
 
+    // TODO - probably factor this out
+    free(r);
+}
 
 int eventListen(int versionMajor, int port){
     if(state != NULL){

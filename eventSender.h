@@ -6,6 +6,7 @@
 #include "eventRegistry.h"
 
 // TODO - minor version
-int eventSend(IPAddress ip, int port, int version, event_opCode opCode, int length, void * body);
+int eventSend(IPAddress ip, int port, int version, int opCode, int length, void * body, int responseId);
+int eventSendC(WiFiClient * client, int version, int opCode, int length, void * body, int responseId);
 
 #endif
