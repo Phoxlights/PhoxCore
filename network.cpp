@@ -26,19 +26,8 @@ static struct networkState {
     Ticker ticker;
 } state = {0};
 
-// workaround to force wifi off per
-// https://github.com/esp8266/Arduino/issues/644
 static void wifiOff(){
-    WiFi.mode(WIFI_OFF);
-    //WiFi.forceSleepBegin();
-    delay(1);
-}
-// workaround to force wifi back on per
-// https://github.com/esp8266/Arduino/issues/644
-static void wifiOn(){
-    //WiFi.forceSleepWake();
-    WiFi.mode(WIFI_STA);  
-    //WiFi.forceForceWake();
+    WiFi.disconnect(true);
 }
 
 static void resetState(){
@@ -103,21 +92,30 @@ int networkConnect(char * ssid, char * pass){
     }
 
     resetState();
-    // HACK - works around https://github.com/tzapu/WiFiManager/issues/31
-    // which is supposed to be fixed, but im still seeing it :/
-    WiFi.mode(WIFI_OFF);  
-    delay(200);
 
-    wifiOn();
     Serial.printf("Connecting to %s\n", ssid);
-    WiFi.begin(ssid, pass);
+
+    int ssidMatches = strcmp(ssid, WiFi.SSID().c_str()) ? false : true;
+    int passMatches = strcmp(ssid, WiFi.psk().c_str()) ? false : true;
+    bool matchingCreds = (ssidMatches && passMatches);
+    
+    WiFiMode_t currentMode = WiFi.getMode();
+    bool enabled = ((currentMode & WIFI_STA) != 0);
+
+    // if ssid and pass werent cached, we need to explicitly
+    // connect, forcing them to be cached
+    if(!matchingCreds || !enabled){
+        Serial.printf("enabling wifi and setting ssid and pass");
+        WiFi.begin(ssid, pass);
+    }
     state.status = CONNECTING;
     
     int status = WiFi.status();
     int count = 0;
+
     // TODO - move connection into main loop
     while(true){
-        status = WiFi.status();
+        status = WiFi.waitForConnectResult();
 
         // if we're connected, yay!
         if(status == WL_CONNECTED){
@@ -141,10 +139,9 @@ int networkConnect(char * ssid, char * pass){
             return 0;
         }
 
-        // wait a tick and try again
         count++;
-        Serial.print(status);
         delay(500);
+        Serial.print(status);
     }
 
     // wow, something went REAL bad.
@@ -162,12 +159,6 @@ int networkCreate(char * ssid, char * pass, IPAddress apIP){
 
     resetState();
 
-    // HACK - works around https://github.com/tzapu/WiFiManager/issues/31
-    // which is supposed to be fixed, but im still seeing it :/
-    WiFi.mode(WIFI_OFF);  
-    delay(200);
-
-    wifiOn();
     WiFi.mode(WIFI_AP);
     // TODO - get netmask from user
     if(!WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 0, 0))){
@@ -211,7 +202,6 @@ int networkStop(){
 }
 
 int networkOff(){
-    // TODO - disconnect
     wifiOff();
 }
 
