@@ -115,6 +115,7 @@ static Event * eventReceive(WiFiClient client){
 
 static int eventTrigger(Event * e, Request * r){
     EventHeader * header = e->header;
+    int triggerCount = 0;
     Serial.printf("Received event: %i\n", header->opCode);
 
     if(header->versionMajor != state->versionMajor){
@@ -126,12 +127,15 @@ static int eventTrigger(Event * e, Request * r){
         if(state->eventMap[i]->opCode == header->opCode){
             Serial.printf("fount event %i\n", header->opCode);
             state->eventMap[i]->handler(e,r);
-            return 1;
+            triggerCount++;
         } 
     }
 
-    Serial.printf("Couldnt find: %i\n", header->opCode);
-    return 0;
+    if(triggerCount == 0){
+        Serial.printf("no handlers found for event %i\n", header->opCode);
+    }
+
+    return triggerCount;
 }
 
 static void eventReceiverTick(void * s){
@@ -159,7 +163,7 @@ static void eventReceiverTick(void * s){
     r->client = &client;
 
     if(!eventTrigger(e, r)){
-        Serial.println("Couldn't trigger event");
+        Serial.printf("either incompatible event version, or no event handlers found. someone should improve this message.");
         // NOTE - dont early return, need to call free
     }
     eventFree(e);
@@ -171,7 +175,8 @@ static void eventReceiverTick(void * s){
 int eventListen(int versionMajor, int port){
     if(state != NULL){
         Serial.println("Cannot start event receive; already started");
-        // TODO - is returning 1 here ok?
+        // TODO - verify the version and port match before
+        // assuming this is ok
         return 1;
     }
     if(!networkIsConnected()){
@@ -203,6 +208,15 @@ int eventRegister(event_opCode opCode, eventCallback * handler){
     if(state->eventMapLength == MAX_EVENTS){
         Serial.printf("cannot register event; max events %i already reached\n", MAX_EVENTS);
         return 0;
+    }
+
+    // check if this exact event and handler
+    // already exists
+    for(byte i = 0; i < state->eventMapLength; i++){
+        if(state->eventMap[i]->opCode == opCode && state->eventMap[i]->handler == handler){
+            Serial.printf("identical event handler already registered for event %i\n", opCode);
+            return 0;
+        } 
     }
 
     Serial.printf("registering %i\n", opCode);
