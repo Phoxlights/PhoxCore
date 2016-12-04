@@ -34,9 +34,11 @@ int eventSendC(WiFiClient * client, int version, int opCode, int length, void * 
     client->write(headerPtr, sizeof(EventHeader));
 
     // write body
-    const uint8_t* bodyPtr = (byte*)body;
-    // TODO - error handling around client write
-    client->write(bodyPtr, length);
+    if(length){
+        const uint8_t* bodyPtr = (byte*)body;
+        // TODO - error handling around client write
+        client->write(bodyPtr, length);
+    }
 
     // TODO - leave client open?
     client->stop();
@@ -46,6 +48,7 @@ int eventSendC(WiFiClient * client, int version, int opCode, int length, void * 
 
 // TODO - minor version
 int eventSend(IPAddress ip, int port, int version, int opCode, int length, void * body, int responseId){
+    Serial.printf("sendin event to %s:%i\n", ip.toString().c_str(), port);
     if(!networkIsConnected()){
         Serial.println("cannot send event; no network");
         return 0;
@@ -55,7 +58,7 @@ int eventSend(IPAddress ip, int port, int version, int opCode, int length, void 
         client = new WiFiClient();
     }
 
-    if (client->connect(ip, port)) {
+    if(!client->connect(ip, port)){
         Serial.printf("couldnt connect to %s:%i\n", ip.toString().c_str(), port);
         return 0;
     }
