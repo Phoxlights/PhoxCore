@@ -230,7 +230,7 @@ static void eventReceiverTick(void * s){
 
 int eventListen(int versionMajor, int port){
     if(state != NULL){
-        Serial.println("Cannot start event receive; already started");
+        Serial.println("already listening for events bro");
         // TODO - verify the version and port match before
         // assuming this is ok
         return 1;
