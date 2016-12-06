@@ -6,6 +6,8 @@
 #define MAX_EVENTS 20
 #define MESSAGE_TIMEOUT 100
 #define MAX_BODY_LENGTH 32
+#define MAX_CLIENTS 5
+#define MAX_WAIT 50
 
 // EVENT REGISTRATION AND EXECUTION
 struct eventMapNode {
@@ -134,39 +136,93 @@ static int eventTrigger(Event * e, Request * r){
     return 0;
 }
 
-static void eventReceiverTick(void * s){
-    // listen for incoming event messages
-    WiFiClient client = state->server->available();
-    if(!client){
-        return;
+static int handleClient(WiFiClient * c){
+    WiFiClient client = *c;
+
+    int wait = MAX_WAIT;
+    while(wait && !client.available()){
+        wait--;
+        delay(1);
     }
 
-    // TODO - max wait time
-    // TODO - yield?
-    while(!client.available()){
-        delay(1);
+    if(wait == 0){
+        Serial.printf("Gave up waiting on client %s:%i\n", client.remoteIP().toString().c_str(), client.remotePort());
+        client.stop();
+        return 0;
     }
 
     Event * e = eventReceive(client);
     if(e == NULL){
         Serial.println("Failed to receive event; skipping");
-        return;
+        return 0;
     }
 
     Request * r = (Request*)calloc(1, sizeof(Request));
     r->remoteIP = client.remoteIP();
     r->remotePort = client.remotePort();
-    r->client = &client;
+    r->client = c;
 
     if(!eventTrigger(e, r)){
         Serial.println("Couldn't trigger event");
         // NOTE - dont early return, need to call free
     }
     eventFree(e);
-
-    // TODO - probably factor this out
     free(r);
+
+    return 1;
 }
+
+static WiFiClient * clients[MAX_CLIENTS] = {0};
+
+// listen for events on a given client
+int eventListenC(WiFiClient * client){
+    int i;
+    for(i = 0; i < MAX_CLIENTS; i++){
+        if(clients[i] == 0){
+            break;
+        }
+    }
+    if(i >= MAX_CLIENTS){
+        Serial.println("Cannot listen to client, already at max listening clients");
+        return 0;
+    }
+
+    clients[i] = client;
+    return 1;
+}
+
+int eventUnListenC(WiFiClient * client){
+    int i;
+    for(i = 0; i < MAX_CLIENTS; i++){
+        Serial.printf("comparing %i and %i\n", clients[i], client);
+        if(clients[i] == client){
+            Serial.printf("deleting client %s:%i\n", client->remoteIP().toString().c_str(), client->remotePort());
+            delete client;
+            clients[i] = 0;
+            return 1;
+        }
+    }
+
+    Serial.printf("could not find client %s:%i\n", client->remoteIP().toString().c_str(), client->remotePort());
+    return 0;
+}
+
+static void eventReceiverTick(void * s){
+    // listen for incoming event messages
+    // on the server
+    WiFiClient client = state->server->available();
+    if(client){
+        handleClient(&client);
+    }
+
+    // check any clients who are waiting on responses
+    for(int i = 0; i < MAX_CLIENTS; i++){
+        if(clients[i] != 0){
+            handleClient(clients[i]);
+        }
+    }
+}
+
 
 int eventListen(int versionMajor, int port){
     if(state != NULL){
