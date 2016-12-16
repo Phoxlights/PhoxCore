@@ -1,6 +1,8 @@
 #ifndef STATUSLIGHT_H
 #define STATUSLIGHT_H
 
+#include <Arduino.h>
+
 #define MAX_PATTERN_LENGTH 10
 
 typedef struct StatusLightState* StatusLight;
